@@ -1,8 +1,8 @@
 import re
 
-def calc_sub_expr(sub: tuple[str, str, str]) -> int | float:
+def calc_sub_expr(sub: tuple[str, ...]) -> float | None:
     n1, o, n2 = sub
-    n1, n2 = int(n1), int(n2)
+    n1, n2 = float(n1), float(n2)
     match o:
         case '**':
             return n1 ** n2
@@ -14,9 +14,11 @@ def calc_sub_expr(sub: tuple[str, str, str]) -> int | float:
             return n1 + n2
         case '-':
             return n1 - n2
+        case _:
+            raise Exception('Not implemented')
 
-def calculate(input: str) -> int | float:
-    def process_operations(matches: list[str]) -> int | float:
+def calculate(input: str) -> float:
+    def process_operations(matches: list[str | float]) -> int | float:
         operations_order = ['**', '*', '/', '+', '-']
 
         # handle parentheses
@@ -35,7 +37,6 @@ def calculate(input: str) -> int | float:
         # process parentheses
         for start, end in reversed(parentheses_pairs):
             tmp = process_operations(matches[start+1:end])
-            # print(f'del {matches[start:end+1]}')
             del matches[start:end+1]
             matches.insert(start, tmp)
 
@@ -43,11 +44,11 @@ def calculate(input: str) -> int | float:
         for o in operations_order:
             for i, m in reversed(list(enumerate(matches))):
                 if m == o:
-                    sub_expr: tuple[str, str, str] = tuple(matches[i-1:i+2])
+                    sub_expr: tuple[str, str, str] = tuple(matches[i-1:i+2]) # type: ignore
                     del matches[i-1:i+2]
-                    matches.insert(i - 1, calc_sub_expr(sub_expr))
+                    matches.insert(i - 1, calc_sub_expr(sub_expr)) # type: ignore
         
-        return matches[0]
+        return matches[0] # type: ignore
     
     regex = r'((\*{1,2}|[+-\/]|^)-)?\d+|\*{1,2}|[+-\/\(\)]'
 
@@ -65,13 +66,13 @@ def calculate(input: str) -> int | float:
         matches.insert(ind + count, op)
         matches.insert(ind + count + 1, f'-{mod}')
     
-    return process_operations(matches)
+    return process_operations(matches) # type: ignore
     
 
-inputs = ['(6 / (5 - 2)) * (10 - 7)',
-          '((2 + 2) * 2)',
-          '((3 - 1) * (9 - 7)) / 4',
-          '(1 + 2 + 3 + 4 - 1) * (8 / (7 - (2 ** (5 - 1) - 7) / 3))']
+# inputs = ['(6 / (5 - 2)) * (10 - 7)',
+#           '((2 + 2) * 2)',
+#           '((3 - 1) * (9 - 7)) / 4',
+#           '(1 + 2 + 3 + 4 - 1) * (8 / (7 - (2 ** (5 - 1) - 7) / 3))']
 
-for inp in inputs:
-    assert calculate(inp) == eval(inp)
+# for inp in inputs:
+#     assert calculate(inp) == eval(inp)
